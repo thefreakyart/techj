@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lista linkówi</title>
+  <title>Lista linków z terminami</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -12,7 +12,14 @@
     input, button {
       margin: 5px;
     }
+    #list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
     .item {
+      width: 16%;
+      box-sizing: border-box;
       border: 1px solid #ccc;
       padding: 10px;
       margin-top: 10px;
@@ -40,7 +47,7 @@
   </style>
 </head>
 <body>
-  <h1>TechJ</h1>
+  <h1>Dodaj link</h1>
   <input type="url" id="link" placeholder="Wklej link" required>
   <input type="text" id="description" placeholder="Opis">
   <input type="date" id="deadline">
