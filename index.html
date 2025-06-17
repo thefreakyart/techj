@@ -142,6 +142,7 @@
 
         if (diff < 0) {
           countdownElem.textContent = 'Po terminie';
+          countdownElem.className = 'countdown' + (days <= 0 ? ' red' : '');
         } else {
           countdownElem.textContent = `Pozostało ${days} dni`;
           countdownElem.className = 'countdown' + (days <= 1 ? ' red' : '');
