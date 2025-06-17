@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lista linków z terminami</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    input, button {
+      margin: 5px;
+    }
+    .item {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 5px;
+    }
+    .countdown.red {
+      color: red;
+      font-weight: bold;
+    }
+    .controls button {
+      margin-left: 5px;
+    }
+    .editable {
+      border-bottom: 1px dashed #aaa;
+      cursor: text;
+    }
+    .disabled {
+      pointer-events: none;
+      opacity: 0.6;
+    }
+    .editable[contenteditable="true"] {
+      pointer-events: auto;
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <h1>Dodaj link</h1>
+  <input type="url" id="link" placeholder="Wklej link" required>
+  <input type="text" id="description" placeholder="Opis">
+  <input type="date" id="deadline">
+  <button onclick="addItem()">Dodaj</button>
+
+  <div id="list"></div>
+
+  <script>
+    const list = document.getElementById('list');
+    let items = JSON.parse(localStorage.getItem('linkTasks')) || [];
+
+    function saveItems() {
+      localStorage.setItem('linkTasks', JSON.stringify(items));
+    }
+
+    function renderItems() {
+      list.innerHTML = '';
+      items.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'item';
+
+        const isEditable = false;
+
+        div.innerHTML = `
+          <div>
+            <span class="editable disabled" data-field="link" data-index="${index}">${item.link}</span>
+            <a href="${item.link}" target="_blank">(otwórz)</a>
+          </div>
+          <p class="editable disabled" data-field="desc" data-index="${index}">${item.desc}</p>
+          <p>Termin: <span class="editable disabled deadline" data-field="deadline" data-index="${index}">${item.deadline}</span></p>
+          <p class="countdown"></p>
+          <div class="controls">
+            <button onclick="enableEdit(${index}, this)">Edytuj</button>
+            <button onclick="deleteItem(${index})">Usuń</button>
+          </div>
+        `;
+        list.appendChild(div);
+      });
+      updateCountdowns();
+    }
+
+    function addItem() {
+      const link = document.getElementById('link').value;
+      const desc = document.getElementById('description').value;
+      const deadline = document.getElementById('deadline').value;
+      if (!link || !deadline) return alert('Wypełnij wszystkie wymagane pola!');
+
+      items.push({ link, desc, deadline });
+      saveItems();
+      renderItems();
+      document.getElementById('link').value = '';
+      document.getElementById('description').value = '';
+      document.getElementById('deadline').value = '';
+    }
+
+    function deleteItem(index) {
+      items.splice(index, 1);
+      saveItems();
+      renderItems();
+    }
+
+    function enableEdit(index, btn) {
+      const container = btn.closest('.item');
+      const fields = container.querySelectorAll('[data-index="' + index + '"]');
+      fields.forEach(field => {
+        field.contentEditable = true;
+        field.classList.remove('disabled');
+        field.addEventListener('blur', () => {
+          editField(index, field.dataset.field, field.textContent);
+        }, { once: true });
+      });
+    }
+
+    function editField(index, field, value) {
+      if (field === 'link') {
+        value = value.trim();
+        if (!value.startsWith('http')) value = 'https://' + value;
+      }
+      items[index][field] = value;
+      saveItems();
+      renderItems();
+    }
+
+    function updateCountdowns() {
+      const now = new Date();
+      document.querySelectorAll('.item').forEach((item, i) => {
+        const deadlineStr = items[i].deadline;
+        const deadline = new Date(deadlineStr);
+        const countdownElem = item.querySelector('.countdown');
+        const diff = deadline - now;
+        const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+
+        if (diff < 0) {
+          countdownElem.textContent = 'Po terminie';
+        } else {
+          countdownElem.textContent = `Pozostało ${days} dni`;
+          countdownElem.className = 'countdown' + (days <= 1 ? ' red' : '');
+        }
+      });
+    }
+
+    setInterval(updateCountdowns, 60000);
+    renderItems();
+  </script>
+</body>
+</html>
